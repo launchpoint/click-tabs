@@ -1,0 +1,37 @@
+:php
+  $container_id = "id_".uniqid();
+  $active_content_id = "id_".uniqid();
+  $inactive_content_id = "id_".uniqid();
+  $links = array_merge($saved_tab_links, gather($tab_links['data'], 'links'))
+.tabs{:id=>$container_id}
+  %ul
+    - foreach($links as $link)
+      %li
+        -$url = (strlen($link['href'])>0 && startswith($current_url, $link['href'])) ? "#$active_content_id" : "#$inactive_content_id"
+        %a{:href=>$url}
+          =se($link['label'])
+  .tab{:id=>$inactive_content_id}
+  .tab{:id=>$active_content_id}
+    :php
+      echo begin_breadcrumb();
+      event('tab_content', $tab_data);
+      echo end_breadcrumb();
+  :js
+    $(document).ready( function() {
+      e = $('#<?=$container_id?>');
+      e.tabs('select', '<?=$active_content_id?>');
+      <? if(strlen($links[0]['href'])>0 && startswith($current_url, $links[0]['href'])): ?>
+        e.trigger('tabsshow');
+      <? endif; ?>
+      e.bind('tabsselect', function(event, ui) {
+        e = $('#<?=$container_id?>');
+        urls = [
+          <? foreach($links as $link): ?>
+          '<?=j($link['href'])?>',
+          <? endforeach; ?>
+        ];
+        location.href = urls[ui.index];
+        return false;
+      });
+    });
+        
